@@ -3,8 +3,10 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
@@ -37,7 +39,7 @@ public class Main {
 
 
     public static void main(String[] args) {
-        HttpClient httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager());
+        CloseableHttpClient httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager());
         //自动登录刷帖（功能暂有bug待修复）
         start(httpClient);
         //手动传cookie刷帖
@@ -53,8 +55,8 @@ public class Main {
      * @param client
      * @return
      */
-    public static boolean start(HttpClient client){
-        HttpClient httpClient = client;
+    public static boolean start(CloseableHttpClient client){
+        CloseableHttpClient httpClient = client;
         HttpPost httpPost=new HttpPost(LOGIN_URL+"/member.php?mod=logging&action=login&loginsubmit=yes&infloat=yes&lssubmit=yes&inajax=1");
         List params=new ArrayList<>();
         params.add(new BasicNameValuePair("username",USER_NAME));
@@ -62,16 +64,16 @@ public class Main {
         String ans;
         try {
             httpPost.setEntity(new UrlEncodedFormEntity( params, "UTF-8"));
-            HttpResponse response=httpClient.execute(httpPost);
+            CloseableHttpResponse response=httpClient.execute(httpPost);
             HttpEntity entity=response.getEntity();
             ans=EntityUtils.toString(entity);
             if((ans.lastIndexOf(LOGIN_URL+"/./")) !=-1){
                 //获取用户的一些信息
                 HttpGet getD=new HttpGet(LOGIN_URL+"/");
-                response = httpClient.execute(getD);
-                entity=response.getEntity();
+                CloseableHttpResponse response2 = httpClient.execute(getD);
+                entity=response2.getEntity();
                 ans=EntityUtils.toString(entity,"GBK");
-                int startId = 150271; // 开始的帖子id
+                int startId = 150287; // 开始的帖子id
                 for (int i = 0; i < 1000; i++) {
                     if (!isExist(startId)) {
                         startId++;
@@ -84,10 +86,11 @@ public class Main {
                         params1.add(new BasicNameValuePair("formhash",ans.substring(ans.lastIndexOf("formhash=")+9,ans.lastIndexOf("formhash=")+17)));
                         HttpPost httpPost1=new HttpPost(BASE_REFER+startId);
                         httpPost1.setEntity(new UrlEncodedFormEntity(params1,"UTF-8"));
-                        httpClient.execute(httpPost1);
+                        CloseableHttpResponse response1 = httpClient.execute(httpPost1);
+                        response1.getEntity().getContent().close();
                         System.out.println("id="+startId+"回复成功！60秒后回复下一贴");
                         startId++;
-//                        Thread.sleep(60 * 1000);
+                        Thread.sleep(60 * 1000);
                     }
                 }
                 return true;
