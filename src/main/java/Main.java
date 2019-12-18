@@ -33,7 +33,7 @@ public class Main {
         }else if ("manual".equals(PropertiesUtil.getParamFromProp("pattern"))){
             //手动传cookie刷帖
             int startId=Integer.parseInt((String) PropertiesUtil.getParamFromProp("startId"));
-            for (int i = 0; i < (int)PropertiesUtil.getParamFromProp("number"); i++) {
+            for (int i = 0; i < Integer.parseInt((String) PropertiesUtil.getParamFromProp("number")); i++) {
                 postMessage(startId);
                 startId++;
             }
@@ -64,7 +64,7 @@ public class Main {
                 entity=response2.getEntity();
                 ans=EntityUtils.toString(entity,"GBK");
                 int startId=Integer.parseInt((String) PropertiesUtil.getParamFromProp("startId"));
-                for (int i = 0; i < (int)PropertiesUtil.getParamFromProp("number"); i++) {
+                for (int i = 0; i < Integer.parseInt((String) PropertiesUtil.getParamFromProp("number")); i++) {
                     if (!isExist(startId)) {
                         startId++;
                     }else{
