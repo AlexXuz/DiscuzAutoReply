@@ -27,14 +27,17 @@ public class Main {
 
     public static void main(String[] args) {
         CloseableHttpClient httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager());
-        //自动登录刷帖
-        start(httpClient);
-        //手动传cookie刷帖
-//        int startId=Integer.parseInt((String) PropertiesUtil.getParamFromProp("startId"));
-//        for (int i = 0; i < 1000; i++) {
-//            postMessage(startId);
-//            startId++;
-//        }
+        if("auto".equals(PropertiesUtil.getParamFromProp("pattern"))){
+            //自动登录刷帖
+            start(httpClient);
+        }else if ("manual".equals(PropertiesUtil.getParamFromProp("pattern"))){
+            //手动传cookie刷帖
+            int startId=Integer.parseInt((String) PropertiesUtil.getParamFromProp("startId"));
+            for (int i = 0; i < (int)PropertiesUtil.getParamFromProp("number"); i++) {
+                postMessage(startId);
+                startId++;
+            }
+        }
     }
 
     /**
@@ -61,7 +64,7 @@ public class Main {
                 entity=response2.getEntity();
                 ans=EntityUtils.toString(entity,"GBK");
                 int startId=Integer.parseInt((String) PropertiesUtil.getParamFromProp("startId"));
-                for (int i = 0; i < 1000; i++) {
+                for (int i = 0; i < (int)PropertiesUtil.getParamFromProp("number"); i++) {
                     if (!isExist(startId)) {
                         startId++;
                     }else{
@@ -69,7 +72,7 @@ public class Main {
                         params1.add(new BasicNameValuePair("mod","post"));
                         params1.add(new BasicNameValuePair("action","reply"));
                         params1.add(new BasicNameValuePair("replysubmit","yes"));
-                        params1.add(new BasicNameValuePair("message","学习快乐"));
+                        params1.add(new BasicNameValuePair("message", (String)PropertiesUtil.getParamFromProp("message")));
                         params1.add(new BasicNameValuePair("formhash",ans.substring(ans.lastIndexOf("formhash=")+9,ans.lastIndexOf("formhash=")+17)));
                         HttpPost httpPost1=new HttpPost((String)PropertiesUtil.getParamFromProp("baseUrl")+startId);
                         httpPost1.setEntity(new UrlEncodedFormEntity(params1,"UTF-8"));
@@ -103,7 +106,7 @@ public class Main {
             con.addRequestProperty("Content-Type", "text/html; charset=UTF-8");
             con.addRequestProperty("User-Agent",
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0");
-            con.addRequestProperty("Referer", "Referer: http://coursebbs.open.com.cn/forum.php?mod=viewthread&tid="+id+"&extra=page%3D1");
+            con.addRequestProperty("Referer", "Referer: "+PropertiesUtil.getParamFromProp("loginUrl")+"/forum.php?mod=viewthread&tid="+id+"&extra=page%3D1");
             con.setRequestMethod("GET");
             if (con.getResponseCode() == 200) {
                 InputStream inputStr = con.getInputStream();
@@ -134,8 +137,8 @@ public class Main {
         mapData.put("mod", "post");
         mapData.put("action", "reply");
         mapData.put("replysubmit", "yes");
-        mapData.put("message", "学习快乐");
-        mapData.put("formhash", "d9afd44d");
+        mapData.put("message", (String)PropertiesUtil.getParamFromProp("message"));
+        mapData.put("formhash", (String)PropertiesUtil.getParamFromProp("formhash"));
         try {
             for (Map.Entry<String, String> mapEnt : mapData.entrySet()) {
                 path.append("&");
@@ -152,7 +155,7 @@ public class Main {
                     String.valueOf(path.length()));
             con.setRequestProperty("User-Agent",
                     "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
-            con.setRequestProperty("Cookie", (String)PropertiesUtil.getParamFromProp("yourCookeie"));
+            con.setRequestProperty("Cookie", (String)PropertiesUtil.getParamFromProp("yourCookie"));
             con.setDoOutput(true);
             OutputStream outStr = con.getOutputStream();
             outStr.write(path.toString().getBytes());
