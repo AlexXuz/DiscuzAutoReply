@@ -78,7 +78,7 @@ public class Main {
                         httpPost1.setEntity(new UrlEncodedFormEntity(params1,"UTF-8"));
                         CloseableHttpResponse response1 = httpClient.execute(httpPost1);
                         response1.getEntity().getContent().close();
-                        System.out.println("id="+startId+"回复成功！60秒后回复下一贴");
+                        System.out.println("id="+startId+"回复成功！回复内容：点击查看："+PropertiesUtil.getParamFromProp("loginUrl")+"/forum.php?mod=viewthread&tid="+startId+"&extra=page%3D1");
                         startId++;
                         Thread.sleep(60 * 1000);
                     }
@@ -112,7 +112,7 @@ public class Main {
                 InputStream inputStr = con.getInputStream();
                 String info = new String(StreamTool.read(inputStr), "UTF-8");
                 if (info.contains("抱歉，指定的主题不存在或已被删除或正在被审核")) {
-                    System.out.println("id=" + id + "帖子存在或已被删除！");
+                    System.out.println("id=" + id + "帖子不存在或已被删除！");
                     return false;
                 }
             }
@@ -146,7 +146,6 @@ public class Main {
                 path.append(URLEncoder.encode(mapEnt.getValue(), "UTF-8"));
             }
             URL url = new URL(path.toString());
-            System.out.println(url);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type",
