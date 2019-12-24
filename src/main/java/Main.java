@@ -31,12 +31,15 @@ public class Main {
             //自动登录刷帖
             start(httpClient);
         }else if ("manual".equals(PropertiesUtil.getParamFromProp("pattern"))){
+            System.out.println("开始手动模式！");
             //手动传cookie刷帖
             int startId=Integer.parseInt((String) PropertiesUtil.getParamFromProp("startId"));
             for (int i = 0; i < Integer.parseInt((String) PropertiesUtil.getParamFromProp("number")); i++) {
                 postMessage(startId);
                 startId++;
             }
+        }else if("quick".equals(PropertiesUtil.getParamFromProp("pattern"))){
+            quick(httpClient);
         }
     }
 
@@ -45,7 +48,57 @@ public class Main {
      * @param client
      * @return
      */
+    public static boolean quick(CloseableHttpClient client){
+        System.out.println("开始快刷模式！");
+        CloseableHttpClient httpClient = client;
+        HttpPost httpPost=new HttpPost(PropertiesUtil.getParamFromProp("loginUrl")+"/member.php?mod=logging&action=login&loginsubmit=yes&infloat=yes&lssubmit=yes&inajax=1");
+        List params=new ArrayList<>();
+        params.add(new BasicNameValuePair("username",(String)PropertiesUtil.getParamFromProp("username")));
+        params.add(new BasicNameValuePair("password",(String)PropertiesUtil.getParamFromProp("password")));
+        String ans;
+        try {
+            httpPost.setEntity(new UrlEncodedFormEntity( params, "UTF-8"));
+            CloseableHttpResponse response=httpClient.execute(httpPost);
+            HttpEntity entity=response.getEntity();
+            ans=EntityUtils.toString(entity);
+            if((ans.lastIndexOf(PropertiesUtil.getParamFromProp("loginUrl")+"/./")) !=-1){
+                //获取用户的一些信息
+                HttpGet getD=new HttpGet(PropertiesUtil.getParamFromProp("loginUrl")+"/");
+                CloseableHttpResponse response2 = httpClient.execute(getD);
+                entity=response2.getEntity();
+                ans=EntityUtils.toString(entity,"GBK");
+                int tid=Integer.parseInt((String) PropertiesUtil.getParamFromProp("tid"));
+                for (int i = 0; i < Integer.parseInt((String) PropertiesUtil.getParamFromProp("number")); i++) {
+                    List params1=new ArrayList<>();
+                    params1.add(new BasicNameValuePair("mod","post"));
+                    params1.add(new BasicNameValuePair("action","reply"));
+                    params1.add(new BasicNameValuePair("comment","yes"));
+                    params1.add(new BasicNameValuePair("commentsubmit","yes"));
+                    params1.add(new BasicNameValuePair("handlekey","comment"));
+                    params1.add(new BasicNameValuePair("message", (String)PropertiesUtil.getParamFromProp("message")));
+                    params1.add(new BasicNameValuePair("formhash",ans.substring(ans.lastIndexOf("formhash=")+9,ans.lastIndexOf("formhash=")+17)));
+                    HttpPost httpPost1=new HttpPost((String)PropertiesUtil.getParamFromProp("baseUrl")+PropertiesUtil.getParamFromProp("tid")+"&pid="+PropertiesUtil.getParamFromProp("pid"));
+                    httpPost1.setEntity(new UrlEncodedFormEntity(params1,"UTF-8"));
+                    CloseableHttpResponse response1 = httpClient.execute(httpPost1);
+                    response1.getEntity().getContent().close();
+                    System.out.println("tid="+tid+"pid="+PropertiesUtil.getParamFromProp("pid")+"回复成功！回复内容：点击查看："+PropertiesUtil.getParamFromProp("loginUrl")+"/forum.php?mod=viewthread&tid="+tid+"&extra=page%3D1");
+                }
+                return true;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+        return false;
+    }
+
+    /**
+     * 开始刷帖
+     * @param client
+     * @return
+     */
     public static boolean start(CloseableHttpClient client){
+        System.out.println("开始自动模式！");
         CloseableHttpClient httpClient = client;
         HttpPost httpPost=new HttpPost(PropertiesUtil.getParamFromProp("loginUrl")+"/member.php?mod=logging&action=login&loginsubmit=yes&infloat=yes&lssubmit=yes&inajax=1");
         List params=new ArrayList<>();
